@@ -1,13 +1,22 @@
 import json
 import os
+import re
 from typing import List, Optional
 
 from evalplus.provider import DecoderBase
-from evalplus.sanitize import sanitize
 from evalplus.utils import progress
 
 from feateng.data import get_feateng
 from feateng.provider import make_model
+
+
+def sanitize(code: str, entrypoint: Optional[str] = None) -> str:
+    try:
+        return re.findall(r"```python\n([^`]+)(```)?", code, re.MULTILINE | re.DOTALL)[
+            -1
+        ][0]
+    except:
+        return ""
 
 
 def codegen(
@@ -160,19 +169,6 @@ def run_codegen(
     # Make dataset dir
     os.makedirs(os.path.join(root, dataset), exist_ok=True)
 
-    # Model instructions
-    instruction_prefix = "Please provide a self-contained Python script that solves the following problem in a markdown code block:"
-    response_prefix = "Below is a Python script with a self-contained function that solves the problem and passes corresponding tests:"
-
-    if evalperf_type == "perf-instruct":
-        instruction_prefix = "Please provide an efficient and self-contained Python script that solves the following problem in a markdown code block:"
-        response_prefix = "Below is a Python script with a self-contained function that efficiently solves the problem and passes corresponding tests:"
-    elif evalperf_type == "perf-CoT":
-        instruction_prefix = "Think step by step: please provide an efficient and self-contained Python script that solves the following problem in a markdown code block:"
-        response_prefix = "Below is a Python script with a self-contained function that efficiently solves the problem and passes corresponding tests:"
-    elif evalperf_type is not None and evalperf_type != "instruct":
-        raise ValueError(f"Invalid evalperf_type: {evalperf_type}")
-
     # Model creation
     model_runner = make_model(
         model=model,
@@ -183,8 +179,8 @@ def run_codegen(
         dataset=dataset,
         base_url=base_url,
         tp=tp,
-        instruction_prefix=instruction_prefix,
-        response_prefix=response_prefix,
+        instruction_prefix="",
+        response_prefix="",
         attn_implementation=attn_implementation,
         trust_remote_code=trust_remote_code,
         dtype=dtype,

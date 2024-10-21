@@ -1,8 +1,6 @@
 import json
 import multiprocessing
 import os
-import threading
-import time
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
@@ -97,24 +95,13 @@ def evaluate(
                     solution,
                     sample["_identifier"],
                 )
+
                 futures.append(executor.submit(check_execution_score, *args))
                 completion_id[task_id] += 1
                 n_samples += 1
 
             assert n_samples == len(remainings), "Missing problems in unfinished"
             assert len(completion_id) == len(problems), "Missing problems in samples"
-
-            def stucking_checker():
-                while remainings:
-                    last_size = len(remainings)
-                    time.sleep(20)
-                    if last_size != len(remainings) or len(remainings) == 0:
-                        continue
-                    # Potential stucking
-                    warn("No samples had finished testing in the last 20s")
-                    warn(f"{len(remainings)} samples to be tested: {remainings}")
-
-            threading.Thread(target=stucking_checker).start()
 
             print("Executing... This may take a while when running for the first time.")
 
@@ -135,7 +122,7 @@ def evaluate(
 
     cprint(f"FeatEng (bechmark score)", "green")
     if std > 0:
-        cprint(f"{total:.3f} +- {std:.3f}", "green")
+        cprint(f"{total:.3f} ± {std:.3f}", "green")
     else:
         cprint(f"{total:.3f}", "green")
 

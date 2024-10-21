@@ -55,6 +55,26 @@ class BaseModel(ABC):
             train_x.fillna(train_x.mean(), inplace=True)
             test_x.fillna(test_x.mean(), inplace=True)
 
+    @staticmethod
+    def clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
+        try:
+            df.columns = df.columns.str.replace("[", "(", regex=False)
+        except:
+            pass
+        try:
+            df.columns = df.columns.str.replace("]", ")", regex=False)
+        except:
+            pass
+        try:
+            df.columns = df.columns.str.replace("<", "lesser", regex=False)
+        except:
+            pass
+        try:
+            df.columns = df.columns.str.replace(">", "greater", regex=False)
+        except:
+            pass
+        return df
+
 
 class XGBoostModel(BaseModel):
     model_slug: str = "xgboost"
@@ -67,8 +87,8 @@ class XGBoostModel(BaseModel):
     def baseline_encode(self, data_split: DataSplit) -> DataSplit:
         test_x = XGBoostModel.convert_objects_to_category(data_split.test_x)
         train_x = XGBoostModel.convert_objects_to_category(data_split.train_x)
-        # train_x = DataProcessor.clean_column_names(train_x)
-        # test_x = DataProcessor.clean_column_names(test_x)
+        train_x = self.clean_column_names(train_x)
+        test_x = self.clean_column_names(test_x)
         return DataSplit(
             test_x, data_split.test_target, train_x, data_split.train_target
         )
