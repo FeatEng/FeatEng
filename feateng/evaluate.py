@@ -42,9 +42,7 @@ def evaluate(
         )
     assert samples is not None, "No samples provided"
 
-    n_workers = parallel or max(1, multiprocessing.cpu_count() // 2)
-
-    # n_workers = 1
+    n_workers = parallel or min(max(1, multiprocessing.cpu_count() // 2), 4)
 
     if os.path.isdir(samples):
         result_path = os.path.join(samples, "eval_results.json")

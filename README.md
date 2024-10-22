@@ -37,12 +37,13 @@ feateng.evaluate --model "mistralai/Codestral-22B-v0.1"     \
                  --n_samples 3                              \
                  --attn_implementation "flash_attention_2"
 ```
-Or, preferably, use vLLM (requires installing *feateng* with vllm extras), e.g.:
+Or, preferably, use vLLM (requires installing *feateng* with *vllm* extras), e.g.:
 ```bash
 feateng.evaluate --model "meta-llama/Llama-3.1-70B-Instruct"  \
                  --backend "vllm"                             \
                  --temperature 1                              \
                  --tp 4
+Because FeatEng has prompts of ~8k tokens, vLLM with automatic prefix caching offers significantly better performance.
 ```
 
 ### Implementation details
