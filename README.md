@@ -43,8 +43,8 @@ feateng.evaluate --model "meta-llama/Llama-3.1-70B-Instruct"  \
                  --backend "vllm"                             \
                  --temperature 1                              \
                  --tp 4
-Because FeatEng has prompts of ~8k tokens, vLLM with automatic prefix caching offers significantly better performance.
 ```
+Because FeatEng has prompts of ~8k tokens, vLLM with automatic prefix caching offers significantly better performance.
 
 ### Implementation details
 We rely heavily on the [EvalPlus](https://github.com/evalplus/evalplus) suite we extended to support FeatEng.
