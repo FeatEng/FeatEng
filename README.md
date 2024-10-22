@@ -9,7 +9,7 @@ The model is provided with a dataset description in a prompt and asked to genera
 ### Usage
 (1) **Install** package with `pip`, e.g.:
 ```bash
-d
+pip install --upgrade "feateng @ git+https://github.com/FeatEng/FeatEng"
 ```
 (2) **Run** evalution command. The most straightforward is to follow the following pattern:
 ```bash
