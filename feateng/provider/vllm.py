@@ -1,21 +1,59 @@
 from typing import List
 
-import torch
-from evalplus.provider.vllm import VllmDecoder as OrgVllmDecoder
+from transformers import AutoTokenizer
+from evalplus.provider.base import DecoderBase
+from vllm import LLM, SamplingParams
 
-from feateng.provide.utility import make_raw_chat_prompt
+from feateng.provider.utility import make_raw_chat_prompt
 
 
-class VllmDecoder(OrgVllmDecoder):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+class VllmDecoder(DecoderBase):
+    def __init__(
+        self,
+        name: str,
+        dataset: str,
+        force_base_prompt: bool = False,
+        tensor_parallel_size: int = 1,
+        **kwargs
+    ) -> None:
+        super().__init__(name, **kwargs)
         self.max_new_tokens = 4096
 
-    @torch.inference_mode()
+        kwargs = {
+            "tensor_parallel_size": tensor_parallel_size,
+            "dtype": self.dtype,
+            "trust_remote_code": self.trust_remote_code,
+            "enable_prefix_caching": True,
+            "max_model_len": 16000,
+        }
+
+        self.force_base_prompt = force_base_prompt
+        self.tokenizer = AutoTokenizer.from_pretrained(self.name, use_fast=False)
+        self.eos = ["\n```\n"]
+        self.llm = LLM(model=name, **kwargs)
+
+    def is_direct_completion(self) -> bool:
+        return self.force_base_prompt or self.tokenizer.chat_template is None
+
     def codegen(
         self, prompt: str, do_sample: bool = True, num_samples: int = 200
     ) -> List[str]:
-        prompt = make_raw_chat_prompt(prompt, self.tokenizer)
-        self.force_base_prompt = True  # Hack. We use chat template anyway
-        self.eos = ["\n```\n"]
-        return OrgVllmDecoder.codegen(self, prompt, do_sample, num_samples)
+        if do_sample:
+            assert self.temperature > 0, "Temperature must be greater than 0!"
+        batch_size = min(self.batch_size, num_samples)
+
+        prompt = prompt if self.is_direct_completion() else make_raw_chat_prompt(prompt, self.tokenizer)
+
+        vllm_outputs = self.llm.generate(
+            [prompt] * batch_size,
+            SamplingParams(
+                temperature=self.temperature,
+                max_tokens=self.max_new_tokens,
+                top_p=0.95 if do_sample else 1.0,
+                stop=self.eos,
+            ),
+            use_tqdm=False,
+        )
+
+        gen_strs = [x.outputs[0].text.replace("\t", "    ") for x in vllm_outputs]
+        return gen_strs

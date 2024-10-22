@@ -35,7 +35,14 @@ feateng.evaluate --model "mistralai/Codestral-22B-v0.1"     \
                  --backend "hf"                             \
                  --temperature 0.7                          \
                  --n_samples 3                              \
-                 --attn_implementation "flash_attention_2"  \
+                 --attn_implementation "flash_attention_2"
+```
+Or, preferably, use vLLM (requires installing *feateng* with vllm extras), e.g.:
+```bash
+feateng.evaluate --model "meta-llama/Llama-3.1-70B-Instruct"  \
+                 --backend "vllm"                             \
+                 --temperature 1                              \
+                 --tp 4
 ```
 
 ### Implementation details
