@@ -22,7 +22,7 @@ def make_model(
     attn_implementation="eager",
 ) -> DecoderBase:
     if backend == "vllm":
-        from evalplus.provider.vllm import VllmDecoder
+        from feateng.provider.vllm import VllmDecoder
 
         return VllmDecoder(
             name=model,

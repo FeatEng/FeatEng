@@ -3,7 +3,7 @@ from typing import List
 import torch
 from evalplus.provider.hf import HuggingFaceDecoder as OrgHuggingFaceDecoder
 
-from feateng.provide.utility import make_raw_chat_prompt
+from feateng.provider.utility import make_raw_chat_prompt
 
 
 class HuggingFaceDecoder(OrgHuggingFaceDecoder):
