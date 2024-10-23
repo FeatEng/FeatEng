@@ -128,7 +128,7 @@ def codegen(
 
 def run_codegen(
     model: str,
-    dataset: str,
+    dataset: str = "feateng",
     root: str = "results",
     bs: Optional[int] = None,
     n_samples: int = 1,
@@ -213,3 +213,13 @@ def run_codegen(
     gc.collect()
 
     return target_path
+
+
+def main():
+    from fire import Fire
+
+    Fire(run_codegen)
+
+
+if __name__ == "__main__":
+    main()
