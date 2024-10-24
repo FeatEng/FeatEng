@@ -33,7 +33,7 @@ For HuggingFace models, one can follow the following:
 ```bash
 feateng.evaluate --model "mistralai/Codestral-22B-v0.1"     \
                  --backend "hf"                             \
-                 --temperature 0.7                          \
+                 --temperature 1                          \
                  --n_samples 3                              \
                  --attn_implementation "flash_attention_2"
 ```
@@ -44,7 +44,15 @@ feateng.evaluate --model "meta-llama/Llama-3.1-70B-Instruct"  \
                  --temperature 1                              \
                  --tp 4
 ```
-Because FeatEng has prompts of ~8k tokens, vLLM with automatic prefix caching offers significantly better performance.
+
+### Hints
+(1) Because FeatEng has prompts of ~8k tokens, vLLM with automatic prefix caching offers **significantly better performance**.
+
+(2) We recommend downloading datasets explicitly first before running the evals, especially with many parallel executions (`--parallel`) or in deployable eval jobs:
+```bash
+huggingface-cli download FeatEng/Data --repo-type dataset
+huggingface-cli download FeatEng/Benchmark --repo-type dataset
+```
 
 ### Implementation details
 We rely heavily on the [EvalPlus](https://github.com/evalplus/evalplus) suite we extended to support FeatEng.
