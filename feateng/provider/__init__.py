@@ -63,3 +63,32 @@ def make_model(
             instruction_prefix=instruction_prefix,
             response_prefix=response_prefix,
         )
+    elif backend == "anthropic":
+        from feateng.provider.anthropic import AnthropicDecoder
+
+        assert not force_base_prompt, f"{backend} backend does not serve base model"
+        return AnthropicDecoder(
+            name=model,
+            batch_size=batch_size,
+            temperature=temperature,
+            instruction_prefix=instruction_prefix,
+            response_prefix=response_prefix,
+        )
+
+
+class LazyDecoder:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        self.inner_decoder = None
+
+    def __getattr__(self, attr):
+        if self.inner_decoder is None:
+            self.inner_decoder = make_model(**self.kwargs)
+        if attr not in self.__dict__:
+            return getattr(self.inner_decoder, attr)
+        return super().__getattr__(attr)
+
+    def __str__(self):
+        if "model" in self.kwargs:
+            return self.kwargs["model"]
+        return "(lazy model)"
