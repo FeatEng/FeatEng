@@ -7,7 +7,7 @@ from evalplus.provider import DecoderBase
 from evalplus.utils import progress
 
 from feateng.data import get_feateng
-from feateng.provider import make_model
+from feateng.provider import LazyDecoder
 
 
 def sanitize(code: str, entrypoint: Optional[str] = None) -> str:
@@ -146,6 +146,7 @@ def run_codegen(
     attn_implementation: str = "eager",
     trust_remote_code: bool = False,
     dtype: str = "bfloat16",
+    target_path: Optional[str] = None,
 ):
     assert dataset in ["feateng"], f"Invalid dataset {dataset}"
 
@@ -170,7 +171,7 @@ def run_codegen(
     os.makedirs(os.path.join(root, dataset), exist_ok=True)
 
     # Model creation
-    model_runner = make_model(
+    model_runner = LazyDecoder(
         model=model,
         backend=backend,
         batch_size=bs,
@@ -191,7 +192,7 @@ def run_codegen(
     if evalperf_type:
         identifier += f"-{evalperf_type}"
 
-    target_path = os.path.join(root, dataset, identifier)
+    target_path = os.path.join(root, dataset, identifier) if target_path is None else target_path
     if jsonl_fmt:
         target_path += ".jsonl"
     else:
