@@ -22,7 +22,7 @@ from feateng.score import check_execution_score
 
 def evaluate(
     samples: Optional[str] = None,
-    parallel: Optional[int] = None,
+    parallel: int = 2,
     i_just_wanna_run: bool = False,
     **model_kwargs,
 ):
@@ -42,7 +42,7 @@ def evaluate(
         )
     assert samples is not None, "No samples provided"
 
-    n_workers = parallel or min(max(1, multiprocessing.cpu_count() // 2), 4)
+    n_workers = parallel
 
     if os.path.isdir(samples):
         result_path = os.path.join(samples, "eval_results.json")
