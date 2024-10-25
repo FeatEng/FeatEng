@@ -2,7 +2,7 @@ import json
 import multiprocessing
 import os
 from collections import Counter, defaultdict
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Optional
 from warnings import warn
@@ -66,7 +66,7 @@ def evaluate(
             "eval": {},
         }
 
-        with ProcessPoolExecutor(max_workers=n_workers) as executor:
+        with ThreadPoolExecutor(max_workers=n_workers) as executor:
             futures = []
             completion_id = Counter()
             n_samples = 0
