@@ -44,6 +44,7 @@ def unsafe_execute(
             result.append(PASS)
         except TimeoutException:
             result.append(TIMEOUT)
+            raise TimeoutException
         except BaseException:
             result.append(FAIL)
 
@@ -90,15 +91,23 @@ def check_execution_score(
     solution: str,
     identifier=None,
 ) -> Dict[str, Union[str, float]]:  # {...}, "base" | "plus" -> (status, details)
-    print(completion_id)
+    print(identifier)
     code = f"import numpy as np\nimport pandas as pd\n{solution}\ntrain_x, train_target, test_x = transform(train_x, train_target, test_x)"
 
-    dataset = load_dataset(
-        "FeatEng/Data",
-        problem["dataframe_id"],
-        verification_mode=VerificationMode.NO_CHECKS,
-        keep_in_memory=True,
-    )
+    try:
+        dataset = load_dataset(
+            "FeatEng/Data",
+            problem["dataframe_id"],
+            verification_mode=VerificationMode.NO_CHECKS,
+            keep_in_memory=True,
+        )
+    except ValueError:
+        # Couldn't find cache
+        dataset = load_dataset(
+            "FeatEng/Data",
+            problem["dataframe_id"],
+            verification_mode=VerificationMode.ALL_CHECKS,
+        )
     train_dataframe, train_target = split_to_x_and_y(dataset["train"])
     test_dataframe, test_target = split_to_x_and_y(dataset["test"])
 
