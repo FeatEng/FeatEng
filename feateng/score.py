@@ -90,6 +90,7 @@ def check_execution_score(
     solution: str,
     identifier=None,
 ) -> Dict[str, Union[str, float]]:  # {...}, "base" | "plus" -> (status, details)
+    print(completion_id)
     code = f"import numpy as np\nimport pandas as pd\n{solution}\ntrain_x, train_target, test_x = transform(train_x, train_target, test_x)"
 
     dataset = load_dataset(
