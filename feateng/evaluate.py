@@ -104,6 +104,7 @@ def evaluate(
             print("Executing... This may take a while when running for the first time.")
 
             for future in tqdm(as_completed(futures), total=n_samples):
+                print(result["_identifier"])
                 result = future.result()
                 remainings.remove(result["_identifier"])
                 eval_results[result["dataframe_id"]].append(result)
