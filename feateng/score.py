@@ -90,8 +90,9 @@ def check_execution_score(
     solution: str,
     identifier=None,
 ) -> Dict[str, Union[str, float]]:  # {...}, "base" | "plus" -> (status, details)
-    code = f"import numpy as np\nimport pandas as pd\n{solution}\ntrain_x, train_target, test_x = transform(train_x, train_target, test_x)"
-
+    print(identifier)
+    code = 'import os; os.environ["MKL_NUM_THREADS"] = "1"; os.environ["NUMEXPR_NUM_THREADS"] = "1"; os.environ["OMP_NUM_THREADS"] = "1"; import resource; resource.setrlimit(resource.RLIMIT_AS, (800 * 1024 * 1024 * 1024, resource.RLIM_INFINITY))\n'
+    code += f"import numpy as np\nimport pandas as pd\n{solution}\ntrain_x, train_target, test_x = transform(train_x, train_target, test_x)"
     dataset = load_dataset(
         "FeatEng/Data",
         problem["dataframe_id"],
@@ -128,7 +129,6 @@ def check_execution_score(
     except BaseException:
         raw_score = 0 if not is_regression else float("inf")
         benchmark_score = 0
-
     return {
         "completion_id": completion_id,
         "dataframe_id": problem["dataframe_id"],
