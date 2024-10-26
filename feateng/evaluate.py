@@ -42,8 +42,6 @@ def evaluate(
         )
     assert samples is not None, "No samples provided"
 
-    n_workers = parallel
-
     if os.path.isdir(samples):
         result_path = os.path.join(samples, "eval_results.json")
     else:
@@ -74,49 +72,32 @@ def evaluate(
             )
         }
 
-        with ProcessPoolExecutor(max_workers=n_workers) as executor:
-            futures = []
-            completion_id = Counter()
-            n_samples = 0
-            eval_results = defaultdict(list)  # task_id ->
-            remainings = set()
 
-            print("Reading samples...")
-            for sample in tqdm(load_solutions(samples)):
-                task_id = sample["task_id"]
-                if task_id not in problems:
-                    warn(
-                        f"Task {task_id} is found in the samples but not found in the dataset"
-                    )
-                    continue
-                solution = (
-                    sample["solution"]
-                    if "solution" in sample
-                    else problems[task_id]["prompt"] + sample["completion"]
+        eval_results = defaultdict(list)
+        completion_id = Counter()
+
+        print("Executing... This may take a while when running for the first time.")
+        for sample in tqdm(load_solutions(samples)):
+            task_id = sample["task_id"]
+            if task_id not in problems:
+                warn(
+                    f"Task {task_id} is found in the samples but not found in the dataset"
                 )
-                remainings.add(sample["_identifier"])
-                args = (
-                    completion_id[task_id],
-                    problems[task_id],
-                    solution,
-                    sample["_identifier"],
-                    preloaded_datasets[task_id],
-                )
-
-                futures.append(executor.submit(check_execution_score, *args))
-                completion_id[task_id] += 1
-                n_samples += 1
-
-            assert n_samples == len(remainings), "Missing problems in unfinished"
-            assert len(completion_id) == len(problems), "Missing problems in samples"
-
-            print("Executing... This may take a while when running for the first time.")
-
-            for future in tqdm(as_completed(futures), total=n_samples):
-                result = future.result()
-                print(result["_identifier"])
-                remainings.remove(result["_identifier"])
-                eval_results[result["dataframe_id"]].append(result)
+                continue
+            solution = (
+                sample["solution"]
+                if "solution" in sample
+                else problems[task_id]["prompt"] + sample["completion"]
+            )
+            result = check_execution_score(
+                completion_id[task_id],
+                problems[task_id],
+                solution,
+                sample["_identifier"],
+                preloaded_datasets[task_id],
+            )
+            completion_id[task_id] += 1
+            eval_results[result["dataframe_id"]].append(result)
 
             results["eval"] = eval_results
 
