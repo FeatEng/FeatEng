@@ -15,9 +15,9 @@ HFDS_INDEX_COLUMN = "__index_level_0__"
 import resource
 
 
-def memory_limit(percentage: float):
+def memory_limit():
     _, hard = resource.getrlimit(resource.RLIMIT_AS)
-    resource.setrlimit(resource.RLIMIT_AS, (int(get_memory() * 1024 * percentage()), hard))
+    resource.setrlimit(resource.RLIMIT_AS, (500 * 1024 * 1024 * 1024, hard))
 
 
 def get_memory():
@@ -53,7 +53,7 @@ def unsafe_execute(
     if exec_globals is None:
         exec_globals = {}
 
-    memory_limit(0.8)
+    memory_limit()
     try:
         with create_tempdir():
             with swallow_io():
