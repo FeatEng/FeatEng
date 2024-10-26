@@ -16,7 +16,7 @@ from termcolor import cprint
 from tqdm import tqdm
 
 from feateng.codegen import run_codegen
-from feateng.data import get_feateng, get_feateng_hash
+from feateng.data import get_feateng, get_feateng_dataframes_builders, get_feateng_hash
 from feateng.score import check_execution_score
 
 
@@ -66,6 +66,14 @@ def evaluate(
             "eval": {},
         }
 
+        print("Preloading datasets...")
+        datasets = {
+            task_id: builder.as_dataset()
+            for builder, task_id in zip(
+                get_feateng_dataframes_builders(), problems.keys()
+            )
+        }
+
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             futures = []
             completion_id = Counter()
@@ -92,6 +100,7 @@ def evaluate(
                     problems[task_id],
                     solution,
                     sample["_identifier"],
+                    dataset[task_id],
                 )
 
                 futures.append(executor.submit(check_execution_score, *args))

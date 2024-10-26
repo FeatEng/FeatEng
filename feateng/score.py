@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from datasets import VerificationMode, load_dataset
+from datasets import VerificationMode, load_dataset, Dataset
 from evalplus.eval import FAIL, PASS, TIMEOUT
 from evalplus.eval.utils import TimeoutException, create_tempdir, swallow_io, time_limit
 from sklearn.metrics import accuracy_score, mean_absolute_error
@@ -50,7 +50,7 @@ def unsafe_execute(
 
 
 def split_to_x_and_y(split) -> Tuple[pd.DataFrame, pd.Series]:
-    split = split.to_pandas()
+    split = split.to_pandas().copy(deep=True)
     y = split[TARGET_COLUMN]
     x = split.drop(columns={TARGET_COLUMN, HFDS_INDEX_COLUMN}, errors="ignore")
     x = x.fillna(value=np.nan)
@@ -90,22 +90,16 @@ def check_execution_score(
     problem: Dict[str, Any],
     solution: str,
     identifier=None,
+    dataset: Optional[Dataset] = None,
 ) -> Dict[str, Union[str, float]]:  # {...}, "base" | "plus" -> (status, details)
     code = f"import numpy as np\nimport pandas as pd\n{solution}\ntrain_x, train_target, test_x = transform(train_x, train_target, test_x)"
 
-    try:
+    if dataset is None:
         dataset = load_dataset(
             "FeatEng/Data",
             problem["dataframe_id"],
             verification_mode=VerificationMode.NO_CHECKS,
             keep_in_memory=True,
-        )
-    except ValueError:
-        # Couldn't find cache
-        dataset = load_dataset(
-            "FeatEng/Data",
-            problem["dataframe_id"],
-            verification_mode=VerificationMode.ALL_CHECKS,
         )
     train_dataframe, train_target = split_to_x_and_y(dataset["train"])
     test_dataframe, test_target = split_to_x_and_y(dataset["test"])
