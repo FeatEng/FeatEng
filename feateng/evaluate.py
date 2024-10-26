@@ -28,8 +28,8 @@ def evaluate(
 ):
     dataset = "feateng"
 
-    datasets.logging.set_verbosity_error()
-    datasets.disable_progress_bars()
+    # datasets.logging.set_verbosity_error()
+    # datasets.disable_progress_bars()
 
     if model_kwargs:
         # To suppress the warning of tokenizers
@@ -67,7 +67,7 @@ def evaluate(
         }
 
         print("Preloading datasets...")
-        datasets = {
+        preloaded_datasets = {
             task_id: builder.as_dataset()
             for builder, task_id in zip(
                 get_feateng_dataframes_builders(), problems.keys()
@@ -100,7 +100,7 @@ def evaluate(
                     problems[task_id],
                     solution,
                     sample["_identifier"],
-                    dataset[task_id],
+                    preloaded_datasets[task_id],
                 )
 
                 futures.append(executor.submit(check_execution_score, *args))
