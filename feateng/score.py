@@ -35,18 +35,18 @@ def unsafe_execute(
 ):
     if exec_globals is None:
         exec_globals = {}
-
-    with create_tempdir():
-        try:
+    
+    try:
+        with create_tempdir():
             with swallow_io():
                 with time_limit(timeout):
                     exec(check_program, exec_globals)
             result.append(PASS)
-        except TimeoutException:
-            result.append(TIMEOUT)
-            raise TimeoutException
-        except BaseException:
-            result.append(FAIL)
+    except TimeoutException:
+        result.append(TIMEOUT)
+        raise TimeoutException
+    except BaseException:
+        result.append(FAIL)
 
 
 def split_to_x_and_y(split) -> Tuple[pd.DataFrame, pd.Series]:
