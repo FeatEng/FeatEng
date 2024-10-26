@@ -12,6 +12,23 @@ from feateng.xgboost_model import DataSplit, XGBoostModel
 TARGET_COLUMN = "__FeatEng_target__"
 HFDS_INDEX_COLUMN = "__index_level_0__"
 
+import resource
+
+
+def memory_limit(percentage: float):
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    resource.setrlimit(resource.RLIMIT_AS, (get_memory() * 1024 * percentage, hard))
+
+
+def get_memory():
+    with open('/proc/meminfo', 'r') as mem:
+        free_memory = 0
+        for i in mem:
+            sline = i.split()
+            if str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
+                free_memory += int(sline[1])
+    return free_memory
+
 
 def error_rate_normalizer_mae(baseline_score: float, predicted_score: float) -> float:
     error_rate_reduction = 1.0 - predicted_score / (baseline_score + 1e-16)
@@ -35,7 +52,8 @@ def unsafe_execute(
 ):
     if exec_globals is None:
         exec_globals = {}
-    
+
+    memory_limit(0.8)
     try:
         with create_tempdir():
             with swallow_io():
@@ -44,7 +62,8 @@ def unsafe_execute(
             result.append(PASS)
     except TimeoutException:
         result.append(TIMEOUT)
-        raise TimeoutException
+    except MemoryError:
+        result.append('out_of_memory')
     except BaseException:
         result.append(FAIL)
 
