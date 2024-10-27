@@ -17,7 +17,7 @@ import resource
 
 def memory_limit():
     _, hard = resource.getrlimit(resource.RLIMIT_AS)
-    resource.setrlimit(resource.RLIMIT_AS, (500 * 1024 * 1024 * 1024, hard))
+    resource.setrlimit(resource.RLIMIT_AS, (900 * 1024 * 1024 * 1024, hard))
 
 
 def get_memory():
