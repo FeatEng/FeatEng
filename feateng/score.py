@@ -18,6 +18,8 @@ import resource
 def memory_limit():
     _, hard = resource.getrlimit(resource.RLIMIT_AS)
     resource.setrlimit(resource.RLIMIT_AS, (900 * 1024 * 1024 * 1024, hard))
+    _, hard = resource.getrlimit(resource.RLIMIT_DATA)
+    resource.setrlimit(resource.RLIMIT_DATA, (900 * 1024 * 1024 * 1024, hard))
 
 
 def get_memory():
@@ -132,8 +134,10 @@ def check_execution_score(
     data_split = model.baseline_encode(data_split)
 
     try:
-        model.fit(data_split.train_x, data_split.train_target)
-        predictions = model.predict(data_split.test_x)
+        with time_limit(600):
+            model.fit(data_split.train_x, data_split.train_target)
+            predictions = model.predict(data_split.test_x)
+
         benchmark_metric = (
             error_rate_normalizer_mae if is_regression else error_rate_normalizer_acc
         )
