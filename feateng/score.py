@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from datasets import VerificationMode, load_dataset, Dataset
 from evalplus.eval import FAIL, PASS, TIMEOUT
-from evalplus.eval.utils import TimeoutException, create_tempdir, swallow_io, time_limit
+from evalplus.eval.utils import TimeoutException, create_tempdir, swallow_io
 from sklearn.metrics import accuracy_score, mean_absolute_error
 
 from feateng.xgboost_model import DataSplit, XGBoostModel
@@ -13,6 +13,21 @@ TARGET_COLUMN = "__FeatEng_target__"
 HFDS_INDEX_COLUMN = "__index_level_0__"
 
 import resource
+
+
+from contextlib import contextmanager
+import signal
+
+@contextmanager
+def time_limit(duration):
+    def timeout_handler(signum, frame):
+        raise TimeoutException(f'block timedout after {duration} seconds')
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(duration)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
 
 
 def memory_limit():
