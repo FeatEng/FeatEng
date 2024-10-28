@@ -14,6 +14,7 @@ from evalplus.data import load_solutions
 from evalplus.eval import compatible_eval_result
 from termcolor import cprint
 from tqdm import tqdm
+from evalplus.utils import progress
 
 from feateng.codegen import run_codegen
 from feateng.data import get_feateng, get_feateng_dataframes_builders, get_feateng_hash
@@ -77,29 +78,31 @@ def evaluate(
         completion_id = Counter()
 
         print("Executing... This may take a while when running for the first time.")
-        for sample in tqdm(load_solutions(samples)):
-            task_id = sample["task_id"]
-            if task_id not in problems:
-                warn(
-                    f"Task {task_id} is found in the samples but not found in the dataset"
+        with progress("Executing") as p:
+            for sample in p.track(load_solutions(load_solutions(samples))):
+                task_id = sample["task_id"]
+                if task_id not in problems:
+                    warn(
+                        f"Task {task_id} is found in the samples but not found in the dataset"
+                    )
+                    continue
+                solution = (
+                    sample["solution"]
+                    if "solution" in sample
+                    else problems[task_id]["prompt"] + sample["completion"]
                 )
-                continue
-            solution = (
-                sample["solution"]
-                if "solution" in sample
-                else problems[task_id]["prompt"] + sample["completion"]
-            )
-            result = check_execution_score(
-                completion_id[task_id],
-                problems[task_id],
-                solution,
-                sample["_identifier"],
-                preloaded_datasets[task_id],
-            )
-            completion_id[task_id] += 1
-            eval_results[result["dataframe_id"]].append(result)
+                p.console.print(sample["_identifier"])
+                result = check_execution_score(
+                    completion_id[task_id],
+                    problems[task_id],
+                    solution,
+                    sample["_identifier"],
+                    preloaded_datasets[task_id],
+                )
+                completion_id[task_id] += 1
+                eval_results[result["dataframe_id"]].append(result)
 
-            results["eval"] = eval_results
+                results["eval"] = eval_results
 
     total_scores = defaultdict(list)
     for group in results["eval"].values():
