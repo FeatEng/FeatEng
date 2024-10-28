@@ -79,7 +79,7 @@ def evaluate(
 
         print("Executing... This may take a while when running for the first time.")
         with progress("Executing") as p:
-            for sample in p.track(load_solutions(load_solutions(samples))):
+            for sample in p.track(load_solutions(samples)):
                 task_id = sample["task_id"]
                 if task_id not in problems:
                     warn(
