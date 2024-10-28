@@ -105,8 +105,28 @@ def process_dataframe_with_code(
     )
     return result.pop(), data_split
 
-
 def check_execution_score(
+    completion_id: int,
+    problem: Dict[str, Any],
+    solution: str,
+    identifier=None,
+    dataset: Optional[Dataset] = None,
+):
+    try:
+        with time_limit(1000):
+            return _check_execution_score(completion_id, problem, solution, identifier, dataset)
+    except:
+        return {
+            "completion_id": completion_id,
+            "dataframe_id": problem["dataframe_id"],
+            "_identifier": identifier,
+            "solution": solution,
+            "raw_score": 0,
+            "benchmark_score": 0,
+            "result": "outer_timeout",
+        }
+
+def _check_execution_score(
     completion_id: int,
     problem: Dict[str, Any],
     solution: str,
